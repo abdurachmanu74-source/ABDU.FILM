@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABYAZ FLIX - Katalog & Komunitas Film Terbaik</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#e50914',
+                            redDark: '#b80710',
+                            gold: '#f5c518',
+                            darkBg: '#0f0f12',
+                            cardBg: '#18181c',
+                            cardHover: '#23232a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0b0e;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .film-strip-pattern {
+            background-image: radial-gradient(rgba(229, 9, 20, 0.15) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .hero-gradient {
+            background: linear-gradient(180deg, rgba(15,15,18,0.2) 0%, rgba(15,15,18,0.85) 70%, #0f0f12 100%);
+        }
+        .glass-panel {
+            background: rgba(24, 24, 28, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .star-rating {
+            display: inline-flex;
+            flex-direction: row-reverse;
+        }
+        .star-rating input {
+            display: none;
+        }
+        .star-rating label {
+            color: #4b5563;
+            cursor: pointer;
+            font-size: 1.75rem;
+            padding: 0 0.1rem;
+            transition: color 0.2s ease;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #f5c518;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f0f12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e50914;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col film-strip-pattern antialiased">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Header / Navigation -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo & Brand -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-brand-red to-red-500 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40">
+                        <i class="fa-solid font-black fa-film text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-extrabold tracking-wider text-white">ABYAZ<span class="text-brand-red">FLIX</span></span>
+                        <span class="block text-[10px] text-gray-400 -mt-1 tracking-widest uppercase font-semibold">Cinema Universe</span>
+                    </div>
+                </div>
+
+                <!-- Main Nav Tabs (Desktop) -->
+                <nav class="hidden md:flex space-x-1 bg-black/40 p-1.5 rounded-2xl border border-gray-800">
+                    <button id="nav-home" onclick="switchTab('home')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 text-white bg-brand-red shadow-md">
+                        <i class="fa-solid fa-house"></i> Beranda
+                    </button>
+                    <button id="nav-top-rated" onclick="switchTab('top-rated')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 text-gray-400 hover:text-white hover:bg-gray-800/60">
+                        <i class="fa-solid fa-star text-brand-gold"></i> Rating Terbaik
+                    </button>
+                    <button id="nav-popular" onclick="switchTab('popular')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 text-gray-400 hover:text-white hover:bg-gray-800/60">
+                        <i class="fa-solid fa-fire text-orange-500"></i> Film Populer
+                    </button>
+                    <button id="nav-database" onclick="switchTab('database')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 text-gray-400 hover:text-white hover:bg-gray-800/60">
+                        <i class="fa-solid fa-database text-blue-400"></i> Data Film
+                    </button>
+                </nav>
+
+                <!-- Search Bar & Bookmark Icon -->
+                <div class="flex items-center space-x-3">
+                    <div class="relative hidden sm:block">
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Cari film, genre, sutradara..." 
+                            class="bg-gray-900/90 text-sm text-gray-200 pl-10 pr-4 py-2 rounded-xl border border-gray-700 focus:outline-none focus:border-brand-red w-48 lg:w-64 transition-all">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+                    </div>
+
+                    <button onclick="toggleWatchlistModal()" class="relative p-2.5 bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl transition border border-gray-700" title="Daftar Favorit">
+                        <i class="fa-solid fa-bookmark"></i>
+                        <span id="watchlistBadge" class="absolute -top-1.5 -right-1.5 bg-brand-red text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Nav Sub-Bar -->
+            <div class="flex md:hidden justify-around py-2 border-t border-gray-800/80 text-xs overflow-x-auto gap-1">
+                <button id="mob-nav-home" onclick="switchTab('home')" class="mob-tab px-3 py-1.5 rounded-lg text-white bg-brand-red font-medium whitespace-nowrap">
+                    <i class="fa-solid fa-house mr-1"></i> Home
+                </button>
+                <button id="mob-nav-top-rated" onclick="switchTab('top-rated')" class="mob-tab px-3 py-1.5 rounded-lg text-gray-400 font-medium whitespace-nowrap">
+                    <i class="fa-solid fa-star text-brand-gold mr-1"></i> Top Rating
+                </button>
+                <button id="mob-nav-popular" onclick="switchTab('popular')" class="mob-tab px-3 py-1.5 rounded-lg text-gray-400 font-medium whitespace-nowrap">
+                    <i class="fa-solid fa-fire text-orange-500 mr-1"></i> Populer
+                </button>
+                <button id="mob-nav-database" onclick="switchTab('database')" class="mob-tab px-3 py-1.5 rounded-lg text-gray-400 font-medium whitespace-nowrap">
+                    <i class="fa-solid fa-database text-blue-400 mr-1"></i> Data Film
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Mobile Search Input Bar -->
+        <div class="sm:hidden mb-6">
+            <div class="relative">
+                <input type="text" id="mobileSearchInput" oninput="handleMobileSearch()" placeholder="Cari judul film, genre..." 
+                    class="w-full bg-gray-900 text-sm text-gray-200 pl-10 pr-4 py-2.5 rounded-xl border border-gray-700 focus:outline-none focus:border-brand-red">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+            </div>
+        </div>
+
+        <!-- ==================== TAB 1: HOME (BERANDA) ==================== -->
+        <section id="tab-home" class="tab-content space-y-10">
+            
+            <!-- Hero Spotlight Banner -->
+            <div id="heroSpotlight" class="relative rounded-3xl overflow-hidden min-h-[420px] md:min-h-[480px] flex items-end p-6 md:p-12 shadow-2xl border border-gray-800">
+                <div id="heroBg" class="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-105" style="background-image: url('https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg');"></div>
+                <div class="absolute inset-0 hero-gradient"></div>
+
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/90 text-white text-xs font-bold uppercase tracking-wider shadow">
+                        <i class="fa-solid fa-crown"></i> Film Sorotan Minggu Ini
+                    </div>
+                    <h1 id="heroTitle" class="text-3xl sm:text-5xl font-black text-white leading-tight drop-shadow-md">
+                        Dune: Part Two
+                    </h1>
+                    <div class="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-300 font-medium">
+                        <span id="heroRating" class="bg-brand-gold text-black px-2 py-0.5 rounded font-bold"><i class="fa-solid fa-star"></i> 4.9</span>
+                        <span id="heroYear">2024</span>
+                        <span>•</span>
+                        <span id="heroGenre" class="text-brand-red font-semibold">Sci-Fi / Petualangan</span>
+                        <span>•</span>
+                        <span id="heroViews"><i class="fa-solid fa-eye text-gray-400"></i> 1.450.000x Dilihat</span>
+                    </div>
+                    <p id="heroSynopsis" class="text-gray-300 text-sm sm:text-base line-clamp-3 leading-relaxed">
+                        Paul Atreides bersatu kembali dengan Chani dan suku Fremen saat ia merencanakan balas dendam terhadap para konspirator yang menghancurkan keluarganya.
+                    </p>
+                    <div class="pt-2 flex flex-wrap items-center gap-3">
+                        <button id="heroPlayBtn" onclick="openMovieDetail(1)" class="px-6 py-3 bg-brand-red hover:bg-brand-redDark text-white font-bold rounded-xl flex items-center gap-2 shadow-lg transition transform active:scale-95">
+                            <i class="fa-solid fa-circle-info"></i> Lihat Detail & Trailer
+                        </button>
+                        <button id="heroWatchlistBtn" onclick="toggleWatchlist(1)" class="px-5 py-3 bg-gray-800/80 hover:bg-gray-700 text-white font-semibold rounded-xl flex items-center gap-2 border border-gray-700 transition">
+                            <i class="fa-solid fa-plus"></i> Tambah Favorit
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Platform Statistics Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-panel p-4 rounded-2xl flex items-center space-x-4 border border-gray-800">
+                    <div class="w-12 h-12 bg-red-500/10 text-brand-red rounded-xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-film"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white" id="statTotalMovies">12</div>
+                        <div class="text-xs text-gray-400 font-medium">Koleksi Film Terdata</div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl flex items-center space-x-4 border border-gray-800">
+                    <div class="w-12 h-12 bg-amber-500/10 text-brand-gold rounded-xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white">4.8 / 5.0</div>
+                        <div class="text-xs text-gray-400 font-medium">Rata-Rata Rating User</div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl flex items-center space-x-4 border border-gray-800">
+                    <div class="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white">14.8 Juta</div>
+                        <div class="text-xs text-gray-400 font-medium">Total Pemirsa</div>
+                    </div>
+                </div>
+                <div class="glass-panel p-4 rounded-2xl flex items-center space-x-4 border border-gray-800">
+                    <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-extrabold text-white" id="statTotalComments">128+</div>
+                        <div class="text-xs text-gray-400 font-medium">Ulasan & Komentar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: Film Populer Saat Ini (Home Showcase) -->
+            <div>
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-7 bg-brand-red rounded-full"></div>
+                        <h2 class="text-2xl font-extrabold text-white tracking-wide">Film Populer Saat Ini</h2>
+                    </div>
+                    <button onclick="switchTab('popular')" class="text-xs font-semibold text-brand-red hover:underline flex items-center gap-1">
+                        Lihat Semua <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+                <div id="homePopularGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Section 2: Rating Terbaik (Home Showcase) -->
+            <div>
+                <div class="flex items-center justify-between mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-7 bg-brand-gold rounded-full"></div>
+                        <h2 class="text-2xl font-extrabold text-white tracking-wide">Rating Terbaik Pengguna</h2>
+                    </div>
+                    <button onclick="switchTab('top-rated')" class="text-xs font-semibold text-brand-gold hover:underline flex items-center gap-1">
+                        Lihat Semua <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+                <div id="homeTopRatedGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== TAB 2: RATING TERBAIK ==================== -->
+        <section id="tab-top-rated" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-3xl border border-gray-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-black text-white flex items-center gap-3">
+                        <i class="fa-solid fa-crown text-brand-gold"></i> Kolom Rating Terbaik
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">
+                        Daftar film dengan skor apresiasi tertinggi yang dirating oleh penonton dan kritikus film.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-900/80 p-1.5 rounded-xl border border-gray-800">
+                    <span class="text-xs text-gray-400 pl-2">Filter Min Star:</span>
+                    <button onclick="filterTopRated(4.5)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-gold text-black">4.5+ ★</button>
+                    <button onclick="filterTopRated(4.8)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:text-white">4.8+ ★</button>
+                </div>
+            </div>
+
+            <div id="topRatedFullGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: FILM POPULER SAAT INI ==================== -->
+        <section id="tab-popular" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-3xl border border-gray-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-black text-white flex items-center gap-3">
+                        <i class="fa-solid fa-fire text-orange-500"></i> Kolom Film Populer Saat Ini
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">
+                        Film yang paling banyak ditonton dan diperbincangkan oleh para pencinta film minggu ini.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 bg-gray-900/80 p-1.5 rounded-xl border border-gray-800 text-xs">
+                    <span class="text-gray-400 px-2"><i class="fa-solid fa-arrow-trend-up text-emerald-400 mr-1"></i> Paling Diminati</span>
+                </div>
+            </div>
+
+            <div id="popularFullGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: DATA-DATA FILM (DATABASE COMPLETE) ==================== -->
+        <section id="tab-database" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-3xl border border-gray-800 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-black text-white flex items-center gap-3">
+                            <i class="fa-solid fa-database text-blue-400"></i> Kolom Data-Data Film Lengkap
+                        </h2>
+                        <p class="text-gray-400 text-sm mt-1">
+                            Pusat data keseluruhan film terdaftar lengkap dengan statistik rating, total penonton, genre, dan aksi.
+                        </p>
+                    </div>
+
+                    <!-- Database Controls -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Genre Select -->
+                        <select id="dbGenreFilter" onchange="renderDatabaseTable()" class="bg-gray-900 text-xs text-gray-200 border border-gray-700 px-3 py-2 rounded-xl focus:outline-none focus:border-brand-red">
+                            <option value="ALL">Semua Genre</option>
+                            <option value="Sci-Fi">Sci-Fi</option>
+                            <option value="Action">Action</option>
+                            <option value="Drama">Drama</option>
+                            <option value="Horror">Horror</option>
+                            <option value="Animation">Animation</option>
+                        </select>
+
+                        <!-- Sort Select -->
+                        <select id="dbSortSelect" onchange="renderDatabaseTable()" class="bg-gray-900 text-xs text-gray-200 border border-gray-700 px-3 py-2 rounded-xl focus:outline-none focus:border-brand-red">
+                            <option value="rating-desc">Rating Tertinggi</option>
+                            <option value="views-desc">Penonton Terbanyak</option>
+                            <option value="year-desc">Tahun Rilis Terbaru</option>
+                            <option value="title-asc">Judul (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Master Table -->
+            <div class="glass-panel rounded-3xl border border-gray-800 overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-black/60 text-xs uppercase text-gray-400 border-b border-gray-800">
+                            <tr>
+                                <th class="py-4 px-4 font-bold">Film & Info</th>
+                                <th class="py-4 px-4 font-bold">Genre</th>
+                                <th class="py-4 px-4 font-bold">Tahun</th>
+                                <th class="py-4 px-4 font-bold">Rating User</th>
+                                <th class="py-4 px-4 font-bold">Total Dilihat</th>
+                                <th class="py-4 px-4 font-bold text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="databaseTableBody" class="divide-y divide-gray-800/60">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MOVIE DETAIL MODAL ==================== -->
+    <div id="movieModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden overflow-y-auto p-4 sm:p-6 lg:p-10 transition-all">
+        <div class="max-w-4xl mx-auto glass-panel bg-brand-cardBg rounded-3xl border border-gray-800 overflow-hidden shadow-2xl relative my-6">
+            
+            <!-- Sticky Top Close Bar -->
+            <div class="sticky top-0 z-20 bg-gray-950/80 backdrop-blur border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-brand-red flex items-center gap-2">
+                    <i class="fa-solid fa-clapperboard"></i> Detail Resmi Film
+                </span>
+                <button onclick="closeMovieModal()" class="px-3 py-1.5 bg-gray-800 hover:bg-red-600 text-gray-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-xmark text-sm"></i> Tutup (ESC)
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8 space-y-8">
+                
+                <!-- Main Header Info Banner -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Movie Poster -->
+                    <div class="relative rounded-2xl overflow-hidden shadow-xl aspect-[2/3] border border-gray-700">
+                        <img id="modalPoster" src="" alt="Poster" class="w-full h-full object-cover">
+                        <div class="absolute top-3 left-3 bg-brand-gold text-black font-extrabold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-star"></i> <span id="modalRatingBadge">4.9</span>
+                        </div>
+                    </div>
+
+                    <!-- Info Details -->
+                    <div class="md:col-span-2 space-y-4">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span id="modalAgeRating" class="px-2.5 py-0.5 bg-gray-800 border border-gray-700 text-xs font-bold text-gray-300 rounded-md">SU</span>
+                            <span id="modalDuration" class="text-xs text-gray-400 font-medium">166 Menit</span>
+                            <span class="text-gray-600">•</span>
+                            <span id="modalYear" class="text-xs text-gray-400 font-medium">2024</span>
+                        </div>
+
+                        <h2 id="modalTitle" class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+                            Judul Film
+                        </h2>
+
+                        <div id="modalGenres" class="flex flex-wrap gap-2">
+                            <!-- Dynamic genre badges -->
+                        </div>
+
+                        <!-- Stats box -->
+                        <div class="grid grid-cols-2 gap-3 py-2">
+                            <div class="bg-black/40 p-3 rounded-xl border border-gray-800">
+                                <span class="block text-[11px] text-gray-400 uppercase font-semibold">Total Penonton</span>
+                                <span id="modalViews" class="text-lg font-bold text-white"><i class="fa-solid fa-eye text-blue-400 mr-1"></i> 1,200,000x</span>
+                            </div>
+                            <div class="bg-black/40 p-3 rounded-xl border border-gray-800">
+                                <span class="block text-[11px] text-gray-400 uppercase font-semibold">Rating Keseluruhan</span>
+                                <span id="modalScoreText" class="text-lg font-bold text-brand-gold"><i class="fa-solid fa-star mr-1"></i> 4.9 / 5.0</span>
+                            </div>
+                        </div>
+
+                        <p id="modalSynopsis" class="text-gray-300 text-sm leading-relaxed">
+                            Sinopsis film akan tampil di sini secara rinci...
+                        </p>
+
+                        <!-- Director & Cast -->
+                        <div class="space-y-1 text-xs pt-2 border-t border-gray-800">
+                            <div><span class="text-gray-400">Sutradara:</span> <span id="modalDirector" class="text-white font-semibold">Nama Sutradara</span></div>
+                            <div><span class="text-gray-400">Pemeran Utama:</span> <span id="modalCast" class="text-white font-semibold">Pemeran 1, Pemeran 2</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulated Mini Trailer Player -->
+                <div class="space-y-2">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-circle-play text-brand-red"></i> Preview Trailer
+                    </h3>
+                    <div class="relative rounded-2xl overflow-hidden bg-black aspect-video border border-gray-800 group flex items-center justify-center">
+                        <img id="modalTrailerThumb" src="" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30"></div>
+                        
+                        <div id="trailerPlaceholder" class="relative z-10 text-center p-6 space-y-3">
+                            <button onclick="playTrailerMock()" class="w-16 h-16 bg-brand-red hover:bg-red-600 text-white rounded-full flex items-center justify-center text-2xl shadow-xl transition transform hover:scale-110 active:scale-95 mx-auto">
+                                <i class="fa-solid fa-play ml-1"></i>
+                            </button>
+                            <p class="text-xs font-semibold text-gray-200">Klik untuk memutar trailer simulasi cinematic</p>
+                        </div>
+                        
+                        <!-- Video Playing Overlay Mockup -->
+                        <div id="trailerPlayer" class="hidden absolute inset-0 bg-black flex flex-col items-center justify-center p-4">
+                            <i class="fa-solid fa-film text-5xl text-brand-red animate-pulse mb-3"></i>
+                            <p class="text-sm font-bold text-white">Memutar Trailer Cinematic...</p>
+                            <span class="text-xs text-gray-400 mt-1">[Simulasi Pemutaran Video HD]</span>
+                            <button onclick="stopTrailerMock()" class="mt-4 px-4 py-1.5 bg-gray-800 text-xs font-bold text-white rounded-lg hover:bg-gray-700">
+                                Stop Trailer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating System Widget (User 5 Stars Rating) -->
+                <div class="bg-gray-900/90 p-6 rounded-2xl border border-gray-800 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-800 pb-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-star text-brand-gold"></i> Berikan Rating Anda
+                            </h3>
+                            <p class="text-xs text-gray-400">Bagikan penilaian bintang Anda (1 - 5 Bintang) untuk film ini</p>
+                        </div>
+                        <div id="userCurrentRatingBadge" class="text-xs font-bold text-gray-300 bg-gray-800 px-3 py-1 rounded-lg">
+                            Belum Dirating
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-6 py-2">
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="rating" value="5" onclick="submitUserRating(5)"><label for="star5" title="5 Bintang - Luar Biasa"><i class="fa-solid fa-star"></i></label>
+                            <input type="radio" id="star4" name="rating" value="4" onclick="submitUserRating(4)"><label for="star4" title="4 Bintang - Sangat Bagus"><i class="fa-solid fa-star"></i></label>
+                            <input type="radio" id="star3" name="rating" value="3" onclick="submitUserRating(3)"><label for="star3" title="3 Bintang - Cukup"><i class="fa-solid fa-star"></i></label>
+                            <input type="radio" id="star2" name="rating" value="2" onclick="submitUserRating(2)"><label for="star2" title="2 Bintang - Buruk"><i class="fa-solid fa-star"></i></label>
+                            <input type="radio" id="star1" name="rating" value="1" onclick="submitUserRating(1)"><label for="star1" title="1 Bintang - Sangat Buruk"><i class="fa-solid fa-star"></i></label>
+                        </div>
+                        <p class="text-xs text-gray-400 italic text-center sm:text-left">
+                            Klik pada bintang untuk mengirim rating secara langsung.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Comment Section -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-blue-400"></i> Kolom Komentar Pengguna
+                    </h3>
+
+                    <!-- Comment Input Form -->
+                    <form onsubmit="submitComment(event)" class="bg-gray-900/60 p-4 rounded-2xl border border-gray-800 space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input type="text" id="commentAuthor" placeholder="Nama Anda (Contoh: Budi Penonton)" required
+                                class="bg-gray-950 text-xs text-white p-3 rounded-xl border border-gray-800 focus:outline-none focus:border-brand-red">
+                        </div>
+                        <textarea id="commentText" rows="3" placeholder="Tulis tanggapan atau ulasan Anda mengenai film ini..." required
+                            class="w-full bg-gray-950 text-xs text-white p-3 rounded-xl border border-gray-800 focus:outline-none focus:border-brand-red resize-none"></textarea>
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> Kirim Komentar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Comments List -->
+                    <div id="commentsList" class="space-y-3 max-h-72 overflow-y-auto pr-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Exit & Quick Jump Bottom Navigation Bar -->
+                <div class="pt-6 border-t border-gray-800 space-y-3">
+                    <p class="text-xs text-gray-400 text-center font-semibold uppercase tracking-wider">
+                        Navigasi Cepat Keluar / Pindah Kolom
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button onclick="closeModalAndSwitch('home')" class="py-2.5 px-3 bg-gray-800 hover:bg-brand-red text-white text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-house"></i> Ke Beranda
+                        </button>
+                        <button onclick="closeModalAndSwitch('top-rated')" class="py-2.5 px-3 bg-gray-800 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-star text-brand-gold"></i> Rating Terbaik
+                        </button>
+                        <button onclick="closeModalAndSwitch('popular')" class="py-2.5 px-3 bg-gray-800 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-fire text-orange-400"></i> Film Populer
+                        </button>
+                        <button onclick="closeModalAndSwitch('database')" class="py-2.5 px-3 bg-gray-800 hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-database text-blue-400"></i> Data-Data Film
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== WATCHLIST MODAL ==================== -->
+    <div id="watchlistModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="max-w-md w-full glass-panel bg-brand-cardBg rounded-3xl border border-gray-800 overflow-hidden p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-brand-red"></i> Daftar Film Favorit
+                </h3>
+                <button onclick="toggleWatchlistModal()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="watchlistItems" class="space-y-3 max-h-80 overflow-y-auto">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="mt-16 bg-black/80 border-t border-gray-800 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Brand -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-brand-red rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                        <i class="fa-solid fa-film"></i>
+                    </div>
+                    <span class="text-lg font-black tracking-wider text-white">ABYAZ<span class="text-brand-red">FLIX</span></span>
+                </div>
+
+                <!-- Footer Nav Links -->
+                <div class="flex flex-wrap justify-center gap-6 text-xs text-gray-400 font-medium">
+                    <button onclick="switchTab('home')" class="hover:text-white transition">Beranda</button>
+                    <button onclick="switchTab('top-rated')" class="hover:text-white transition">Rating Terbaik</button>
+                    <button onclick="switchTab('popular')" class="hover:text-white transition">Film Populer</button>
+                    <button onclick="switchTab('database')" class="hover:text-white transition">Data-Data Film</button>
+                </div>
+
+                <!-- Social Icons Mock -->
+                <div class="flex items-center space-x-4 text-gray-400">
+                    <a href="#" class="hover:text-brand-red transition"><i class="fa-brands fa-youtube"></i></a>
+                    <a href="#" class="hover:text-brand-red transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="hover:text-brand-red transition"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" class="hover:text-brand-red transition"><i class="fa-brands fa-x-twitter"></i></a>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-900 pt-6 text-center space-y-2">
+                <p class="text-xs text-gray-500">
+                    Situs katalog film komprehensif dengan ulasan penonton, statistik data lengkap, dan sistem rating bintang.
+                </p>
+                
+                <!-- Mandatory Footer Credit Tag -->
+                <div class="pt-2">
+                    <span class="inline-block px-4 py-1.5 rounded-full bg-gray-900 border border-gray-800 text-sm font-extrabold text-brand-gold shadow-inner tracking-widest uppercase">
+                        @ABYAZAKFA
+                    </span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Full Dataset of Movies
+        const initialMovies = [
+            {
+                id: 1,
+                title: "Dune: Part Two",
+                genre: ["Sci-Fi", "Petualangan", "Aksi"],
+                year: 2024,
+                duration: "166 Menit",
+                rating: 4.9,
+                totalRatings: 18400,
+                views: 1450000,
+                ageRating: "13+",
+                director: "Denis Villeneuve",
+                cast: "Timothée Chalamet, Zendaya, Rebecca Ferguson",
+                synopsis: "Paul Atreides bersatu kembali dengan Chani dan suku Fremen saat ia merencanakan balas dendam terhadap para konspirator yang menghancurkan keluarganya.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+                comments: [
+                    { name: "Rizky Cinema", text: "Visual luar biasa dan skoring musik yang memukau!", date: "2 jam yang lalu" },
+                    { name: "Siti Filmia", text: "Film terbaik tahun ini! Wajib ditonton di layar lebar.", date: "5 jam yang lalu" }
+                ]
+            },
+            {
+                id: 2,
+                title: "Oppenheimer",
+                genre: ["Biografi", "Drama", "Sejarah"],
+                year: 2023,
+                duration: "180 Menit",
+                rating: 4.9,
+                totalRatings: 24500,
+                views: 1800000,
+                ageRating: "17+",
+                director: "Christopher Nolan",
+                cast: "Cillian Murphy, Emily Blunt, Matt Damon",
+                synopsis: "Kisah fisikawan J. Robert Oppenheimer yang memimpin Proyek Manhattan untuk mengembangkan bom atom pertama di dunia selama Perang Dunia II.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/fm6KqXpk3M2HVveHwCrBSSBaO0V.jpg",
+                comments: [
+                    { name: "Andi Tech", text: "Akting Cillian Murphy sangat emosional dan mendalam.", date: "1 hari yang lalu" }
+                ]
+            },
+            {
+                id: 3,
+                title: "Interstellar",
+                genre: ["Sci-Fi", "Drama"],
+                year: 2014,
+                duration: "169 Menit",
+                rating: 4.9,
+                totalRatings: 32000,
+                views: 2100000,
+                ageRating: "SU",
+                director: "Christopher Nolan",
+                cast: "Matthew McConaughey, Anne Hathaway, Jessica Chastain",
+                synopsis: "Tim penjelajah melintasi lubang cacing di ruang angkasa dalam upaya memastikan kelangsungan hidup umat manusia di planet baru.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/pbrkL804c8yAv3zBZR4QPEafpAR.jpg",
+                comments: [
+                    { name: "Bintang Astro", text: "Mahakarya ilmiah yang membuat terharu berkali-kali.", date: "3 hari yang lalu" }
+                ]
+            },
+            {
+                id: 4,
+                title: "Spider-Man: Across the Spider-Verse",
+                genre: ["Animation", "Aksi", "Petualangan"],
+                year: 2023,
+                duration: "140 Menit",
+                rating: 4.8,
+                totalRatings: 19800,
+                views: 1550000,
+                ageRating: "SU",
+                director: "Joaquim Dos Santos, Kemp Powers",
+                cast: "Shameik Moore, Hailee Steinfeld, Oscar Isaac",
+                synopsis: "Miles Morales terlempar ke Multiverse tempat ia bertemu dengan tim Spider-People yang bertugas melindungi keberadaannya.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/8Vt6mWEReuyOf61Lnj5Xj704m8.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg",
+                comments: [
+                    { name: "Fajar Animasi", text: "Gaya animasi paling revolusioner abad ini!", date: "4 hari yang lalu" }
+                ]
+            },
+            {
+                id: 5,
+                title: "The Dark Knight",
+                genre: ["Aksi", "Crime", "Drama"],
+                year: 2008,
+                duration: "152 Menit",
+                rating: 4.9,
+                totalRatings: 41000,
+                views: 2500000,
+                ageRating: "13+",
+                director: "Christopher Nolan",
+                cast: "Christian Bale, Heath Ledger, Aaron Eckhart",
+                synopsis: "Ketika ancaman bernama Joker merajalela di Gotham, Batman harus menerima salah satu tes psikologis dan fisik terbesar dalam keadilan.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/nMKdUUepR0i5zn0y1T4CsSB5chy.jpg",
+                comments: [
+                    { name: "JokerFan", text: "Akting Heath Ledger tidak pernah tertandingi.", date: "1 minggu yang lalu" }
+                ]
+            },
+            {
+                id: 6,
+                title: "Agak Laen",
+                genre: ["Komedi", "Horror"],
+                year: 2024,
+                duration: "119 Menit",
+                rating: 4.8,
+                totalRatings: 15200,
+                views: 1900000,
+                ageRating: "13+",
+                director: "Muhadkly Acho",
+                cast: "Bene Dion, Boris Bokir, Indra Jegel, Oki Rengga",
+                synopsis: "Empat sekawan pengelola wahana rumah hantu pasar malam berjuang menyelamatkan tempat usaha mereka dari kebangkrutan dengan kejadian lucu yang mengejutkan.",
+                poster: "https://filmindonesia.or.id/f/img/movie/poster/poster-agak-laen.jpg",
+                backdrop: "https://filmindonesia.or.id/f/img/movie/poster/poster-agak-laen.jpg",
+                comments: [
+                    { name: "Dewi Tawa", text: "Kocak banget dari awal sampai akhir film!", date: "2 hari yang lalu" }
+                ]
+            },
+            {
+                id: 7,
+                title: "Avatar: The Way of Water",
+                genre: ["Sci-Fi", "Petualangan"],
+                year: 2022,
+                duration: "192 Menit",
+                rating: 4.6,
+                totalRatings: 28000,
+                views: 2200000,
+                ageRating: "SU",
+                director: "James Cameron",
+                cast: "Sam Worthington, Zoe Saldaña, Sigourney Weaver",
+                synopsis: "Jake Sully tinggal bersama keluarga barunya di planet Pandora. Ketika ancaman lama kembali, Jake harus bekerja sama dengan suku laut Na'vi.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/198vrF8k7mfQ4FjDJsBmdQcaiyq.jpg",
+                comments: [
+                    { name: "Ocean Lover", text: "Efek air dan keindahan laut dunianya bikin terpesona.", date: "5 hari yang lalu" }
+                ]
+            },
+            {
+                id: 8,
+                title: "Pengabdi Setan 2: Communion",
+                genre: ["Horror", "Misteri"],
+                year: 2022,
+                duration: "119 Menit",
+                rating: 4.5,
+                totalRatings: 11200,
+                views: 950000,
+                ageRating: "17+",
+                director: "Joko Anwar",
+                cast: "Tara Basro, Endy Arfian, Bront Palarae",
+                synopsis: "Beberapa tahun setelah kejadian menakutkan di rumah lama, Rini dan keluarganya tinggal di rusun padat yang menyimpan rahasia mengerikan saat badai.",
+                poster: "https://assets-a1.kompasiana.com/items/album/2022/08/20/040687800-1658815504-pengabdi-setan-0-62ffd13e3555e402b21b0c52.jpg?t=o&v=1200",
+                backdrop: "https://assets-a1.kompasiana.com/items/album/2022/08/20/040687800-1658815504-pengabdi-setan-0-62ffd13e3555e402b21b0c52.jpg?t=o&v=1200",
+                comments: [
+                    { name: "SeramMania", text: "Suasana rusunnya benar-benar mencekam!", date: "1 minggu yang lalu" }
+                ]
+            },
+            {
+                id: 9,
+                title: "Godzilla x Kong: The New Empire",
+                genre: ["Aksi", "Sci-Fi"],
+                year: 2024,
+                duration: "115 Menit",
+                rating: 4.4,
+                totalRatings: 9400,
+                views: 1300000,
+                ageRating: "SU",
+                director: "Adam Wingard",
+                cast: "Rebecca Hall, Brian Tyree Henry, Dan Stevens",
+                synopsis: "Godzilla dan Kong bersatu melawan ancaman raksasa tak terduga yang tersembunyi di dalam dunia Hollow Earth.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/z1p34vh7dEOnLDmyCrlUVLuoDzd.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/veIyxxi5Gs8gvztLEW1Ysb8rrzs.jpg",
+                comments: [
+                    { name: "Kaiju Fan", text: "Pertarungan raksasa yang sangat seru!", date: "3 hari yang lalu" }
+                ]
+            },
+            {
+                id: 10,
+                title: "Laskar Pelangi",
+                genre: ["Drama", "Keluarga"],
+                year: 2008,
+                duration: "125 Menit",
+                rating: 4.9,
+                totalRatings: 18900,
+                views: 1100000,
+                ageRating: "SU",
+                director: "Riri Riza",
+                cast: "Cut Mini, Ikranagara, Lukman Sardi",
+                synopsis: "Perjuangan 10 anak di desa Belitung dan guru-guru hebat mereka dalam mempertahankan sekolah dan meraih mimpi besar.",
+                poster: "https://cdn.tatlerasia.com/tatlerasia/i/2025/04/08215302-mv5bodkxzdy2zjmtytvmmy00zmzklwizzjetmjk1ndu5otq2ndzixkeyxkfqcgc-at-v1-fmjpg-ux1000_cover_1000x1418.jpg",
+                backdrop: "https://cdn.tatlerasia.com/tatlerasia/i/2025/04/08215302-mv5bodkxzdy2zjmtytvmmy00zmzklwizzjetmjk1ndu5otq2ndzixkeyxkfqcgc-at-v1-fmjpg-ux1000_cover_1000x1418.jpg",
+                comments: [
+                    { name: "NostalgiaSore", text: "Film legendaris Indonesia yang selalu menginspirasi.", date: "2 minggu yang lalu" }
+                ]
+            },
+            {
+                id: 11,
+                title: "Inception",
+                genre: ["Sci-Fi", "Aksi"],
+                year: 2010,
+                duration: "148 Menit",
+                rating: 4.8,
+                totalRatings: 35000,
+                views: 1750000,
+                ageRating: "13+",
+                director: "Christopher Nolan",
+                cast: "Leonardo DiCaprio, Joseph Gordon-Levitt, Elliot Page",
+                synopsis: "Pencuri lihai yang mencuri rahasia dari alam bawah sadar dalam kondisi bermimpi diberikan tugas menanamkan ide ke dalam pikiran seorang CEO.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+                comments: [
+                    { name: "MindBender", text: "Plot twist paling jenius sepanjang masa.", date: "6 hari yang lalu" }
+                ]
+            },
+            {
+                id: 12,
+                title: "Ancika 1995",
+                genre: ["Romantis", "Drama"],
+                year: 2024,
+                duration: "100 Menit",
+                rating: 4.4,
+                totalRatings: 8200,
+                views: 890000,
+                ageRating: "13+",
+                director: "Benni Setiawan",
+                cast: "Zee JKT48, Arbani Yasiz",
+                synopsis: "Hubungan persahabatan dan cinta antara Dilan dan Ancika, seorang siswi SMA yang memiliki kepribadian independen dan tegas.",
+                poster: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/mJLPKTVOcBwPu3bEo8yGkFrtj55.jpg",
+                backdrop: "https://image.tmdb.org/t/p/original/mJLPKTVOcBwPu3bEo8yGkFrtj55.jpg",
+                comments: [
+                    { name: "DilanVerse", text: "Chemistry Zee dan Arbani dapet banget!", date: "4 hari yang lalu" }
+                ]
+            }
+        ];
+
+        // State Management
+        let moviesData = [];
+        let watchlist = [];
+        let activeMovie = null;
+        let currentTab = 'home';
+        const DATA_VERSION = '2026-09-film-images-v2';
+
+        // Initialize App on DOM Load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            renderAllViews();
+            updateWatchlistBadge();
+
+            // Keyboard shortcut ESC to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeMovieModal();
+            });
+        });
+
+        // Load data from LocalStorage if exists
+        function loadFromStorage() {
+            const storedVersion = localStorage.getItem('abyazflix_data_version');
+            const storedMovies = localStorage.getItem('abyazflix_movies');
+
+            if (storedMovies && storedVersion === DATA_VERSION) {
+                moviesData = JSON.parse(storedMovies);
+            } else {
+                moviesData = initialMovies;
+                localStorage.setItem('abyazflix_data_version', DATA_VERSION);
+                saveToStorage();
+            }
+
+            const storedWatchlist = localStorage.getItem('abyazflix_watchlist');
+            if (storedWatchlist) {
+                watchlist = JSON.parse(storedWatchlist);
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('abyazflix_movies', JSON.stringify(moviesData));
+            localStorage.setItem('abyazflix_watchlist', JSON.stringify(watchlist));
+        }
+
+        // Render all views
+        function renderAllViews() {
+            renderHomeGrid();
+            renderTopRatedGrid();
+            renderPopularGrid();
+            renderDatabaseTable();
+            updateTotalStats();
+        }
+
+        // Format number to ID display (e.g., 1.450.000x)
+        function formatNumber(num) {
+            return num.toLocaleString('id-ID') + 'x';
+        }
+
+        // Build reusable Movie Card HTML
+        function createMovieCard(movie, rankBadge = null) {
+            const isWatchlisted = watchlist.includes(movie.id);
+            return `
+                <div class="group relative bg-brand-cardBg rounded-2xl overflow-hidden border border-gray-800 hover:border-brand-red/50 transition-all duration-300 hover:-translate-y-1.5 shadow-lg flex flex-col">
+                    <!-- Poster Container -->
+                    <div class="relative aspect-[2/3] overflow-hidden bg-gray-900 cursor-pointer" onclick="openMovieDetail(${movie.id})">
+                        <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
+                        
+                        <!-- Top Badges -->
+                        <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                            <span class="bg-black/70 backdrop-blur text-brand-gold font-extrabold text-[11px] px-2 py-0.5 rounded-md flex items-center gap-1 border border-brand-gold/30">
+                                <i class="fa-solid fa-star"></i> ${movie.rating.toFixed(1)}
+                            </span>
+                            ${rankBadge ? `<span class="bg-brand-red text-white font-black text-[10px] px-2 py-0.5 rounded-md">${rankBadge}</span>` : ''}
+                        </div>
+
+                        <!-- Watchlist Toggle Button -->
+                        <button onclick="event.stopPropagation(); toggleWatchlist(${movie.id});" class="absolute top-2 right-2 z-10 w-8 h-8 rounded-full ${isWatchlisted ? 'bg-brand-red text-white' : 'bg-black/60 text-gray-300 hover:text-white'} flex items-center justify-center backdrop-blur transition" title="Simpan ke Favorit">
+                            <i class="fa-solid ${isWatchlisted ? 'fa-bookmark' : 'fa-plus'} text-xs"></i>
+                        </button>
+
+                        <!-- Hover Overlay -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
+                            <button class="w-full py-2 bg-brand-red text-white font-bold text-xs rounded-xl shadow flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-circle-play"></i> Lihat Detail
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Content Details -->
+                    <div class="p-3 flex-grow flex flex-col justify-between space-y-2">
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                                <span>${movie.year}</span>
+                                <span><i class="fa-solid fa-eye text-gray-500 mr-0.5"></i> ${Math.floor(movie.views / 1000)}k</span>
+                            </div>
+                            <h3 onclick="openMovieDetail(${movie.id})" class="text-sm font-bold text-white hover:text-brand-red line-clamp-1 transition cursor-pointer mt-1" title="${movie.title}">
+                                ${movie.title}
+                            </h3>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1">
+                            ${movie.genre.slice(0, 2).map(g => `<span class="text-[9px] bg-gray-800 text-gray-300 px-1.5 py-0.5 rounded">${g}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Home Section
+        function renderHomeGrid() {
+            // Sort popular (highest views)
+            const popular = [...moviesData].sort((a, b) => b.views - a.views).slice(0, 6);
+            document.getElementById('homePopularGrid').innerHTML = popular.map(m => createMovieCard(m)).join('');
+
+            // Sort top rated
+            const topRated = [...moviesData].sort((a, b) => b.rating - a.rating).slice(0, 6);
+            document.getElementById('homeTopRatedGrid').innerHTML = topRated.map((m, idx) => createMovieCard(m, `#${idx+1}`)).join('');
+        }
+
+        // Render Top Rated Section
+        function renderTopRatedGrid(minRating = 0) {
+            let filtered = [...moviesData].sort((a, b) => b.rating - a.rating);
+            if (minRating > 0) {
+                filtered = filtered.filter(m => m.rating >= minRating);
+            }
+            document.getElementById('topRatedFullGrid').innerHTML = filtered.map((m, idx) => createMovieCard(m, `#${idx+1}`)).join('');
+        }
+
+        function filterTopRated(minScore) {
+            renderTopRatedGrid(minScore);
+            showToast(`Filter diterapkan: Min Rating ${minScore} ★`);
+        }
+
+        // Render Popular Section
+        function renderPopularGrid() {
+            const popular = [...moviesData].sort((a, b) => b.views - a.views);
+            document.getElementById('popularFullGrid').innerHTML = popular.map(m => createMovieCard(m)).join('');
+        }
+
+        // Render Database Table View
+        function renderDatabaseTable() {
+            const genre = document.getElementById('dbGenreFilter')?.value || 'ALL';
+            const sort = document.getElementById('dbSortSelect')?.value || 'rating-desc';
+
+            let list = [...moviesData];
+
+            if (genre !== 'ALL') {
+                list = list.filter(m => m.genre.includes(genre));
+            }
+
+            // Sorting
+            if (sort === 'rating-desc') list.sort((a, b) => b.rating - a.rating);
+            else if (sort === 'views-desc') list.sort((a, b) => b.views - a.views);
+            else if (sort === 'year-desc') list.sort((a, b) => b.year - a.year);
+            else if (sort === 'title-asc') list.sort((a, b) => a.title.localeCompare(b.title));
+
+            const tbody = document.getElementById('databaseTableBody');
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">Tidak ada data film yang cocok.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map((movie) => `
+                <tr class="hover:bg-gray-800/40 transition">
+                    <td class="py-3 px-4">
+                        <div class="flex items-center space-x-3 cursor-pointer" onclick="openMovieDetail(${movie.id})">
+                            <img src="${movie.poster}" class="w-10 h-14 object-cover rounded-lg border border-gray-800">
+                            <div>
+                                <div class="font-bold text-white hover:text-brand-red transition">${movie.title}</div>
+                                <div class="text-xs text-gray-500">${movie.director}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex flex-wrap gap-1">
+                            ${movie.genre.map(g => `<span class="text-[10px] bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full">${g}</span>`).join('')}
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 font-semibold text-gray-300">${movie.year}</td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center gap-1 font-bold text-brand-gold bg-amber-500/10 px-2.5 py-1 rounded-lg">
+                            <i class="fa-solid fa-star text-xs"></i> ${movie.rating.toFixed(1)}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-medium text-gray-300">
+                        <i class="fa-solid fa-eye text-gray-500 mr-1"></i> ${formatNumber(movie.views)}
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="openMovieDetail(${movie.id})" class="px-3 py-1.5 bg-brand-red hover:bg-brand-redDark text-white font-bold text-xs rounded-lg transition">
+                            Detail & Rating
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Navigation Tab Switcher
+        function switchTab(tabId) {
+            currentTab = tabId;
+
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show target
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            // Update Desktop Nav styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-white', 'bg-brand-red', 'shadow-md');
+                btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60');
+            });
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('text-white', 'bg-brand-red', 'shadow-md');
+                activeNav.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-gray-800/60');
+            }
+
+            // Update Mobile Nav styles
+            document.querySelectorAll('.mob-tab').forEach(btn => {
+                btn.classList.remove('text-white', 'bg-brand-red');
+                btn.classList.add('text-gray-400');
+            });
+            const activeMob = document.getElementById(`mob-nav-${tabId}`);
+            if (activeMob) {
+                activeMob.classList.add('text-white', 'bg-brand-red');
+                activeMob.classList.remove('text-gray-400');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Modal Switcher Helper (Exit movie modal and jump directly to any tab column)
+        function closeModalAndSwitch(tabId) {
+            closeMovieModal();
+            switchTab(tabId);
+        }
+
+        // Open Movie Detail Modal
+        function openMovieDetail(movieId) {
+            const movie = moviesData.find(m => m.id === movieId);
+            if (!movie) return;
+
+            activeMovie = movie;
+
+            // Populate Modal Fields
+            document.getElementById('modalTitle').textContent = movie.title;
+            document.getElementById('modalPoster').src = movie.poster;
+            document.getElementById('modalTrailerThumb').src = movie.backdrop;
+            document.getElementById('modalRatingBadge').textContent = movie.rating.toFixed(1);
+            document.getElementById('modalScoreText').innerHTML = `<i class="fa-solid fa-star mr-1"></i> ${movie.rating.toFixed(1)} / 5.0 (${movie.totalRatings.toLocaleString('id-ID')} ulasan)`;
+            document.getElementById('modalYear').textContent = movie.year;
+            document.getElementById('modalDuration').textContent = movie.duration;
+            document.getElementById('modalAgeRating').textContent = movie.ageRating;
+            document.getElementById('modalViews').innerHTML = `<i class="fa-solid fa-eye text-blue-400 mr-1"></i> ${formatNumber(movie.views)}`;
+            document.getElementById('modalSynopsis').textContent = movie.synopsis;
+            document.getElementById('modalDirector').textContent = movie.director;
+            document.getElementById('modalCast').textContent = movie.cast;
+
+            // Render Genre Tags
+            document.getElementById('modalGenres').innerHTML = movie.genre.map(g => 
+                `<span class="px-3 py-1 bg-brand-red/20 text-brand-red border border-brand-red/40 font-bold text-xs rounded-lg">${g}</span>`
+            ).join('');
+
+            // Render User Rating Radio state if already rated locally
+            const userRatings = JSON.parse(localStorage.getItem('abyazflix_user_ratings') || '{}');
+            const myRating = userRatings[movie.id];
+            
+            document.querySelectorAll('.star-rating input').forEach(input => input.checked = false);
+            const badge = document.getElementById('userCurrentRatingBadge');
+
+            if (myRating) {
+                const radio = document.getElementById(`star${myRating}`);
+                if (radio) radio.checked = true;
+                badge.textContent = `Rating Anda: ${myRating} Bintang ★`;
+                badge.className = "text-xs font-bold text-brand-gold bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/30";
+            } else {
+                badge.textContent = "Belum Dirating";
+                badge.className = "text-xs font-bold text-gray-400 bg-gray-800 px-3 py-1 rounded-lg";
+            }
+
+            // Render Comments
+            renderComments();
+
+            // Reset trailer
+            stopTrailerMock();
+
+            // Show modal
+            document.getElementById('movieModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMovieModal() {
+            document.getElementById('movieModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            stopTrailerMock();
+        }
+
+        // Submit Rating (5 Stars System)
+        function submitUserRating(stars) {
+            if (!activeMovie) return;
+
+            // Update user rating in storage
+            const userRatings = JSON.parse(localStorage.getItem('abyazflix_user_ratings') || '{}');
+            userRatings[activeMovie.id] = stars;
+            localStorage.setItem('abyazflix_user_ratings', JSON.stringify(userRatings));
+
+            // Recalculate movie rating average
+            activeMovie.totalRatings += 1;
+            activeMovie.rating = Math.min(5.0, Math.max(1.0, ((activeMovie.rating * 10) + stars) / 11));
+
+            saveToStorage();
+            renderAllViews();
+
+            // Update UI elements in Modal
+            document.getElementById('modalRatingBadge').textContent = activeMovie.rating.toFixed(1);
+            document.getElementById('modalScoreText').innerHTML = `<i class="fa-solid fa-star mr-1"></i> ${activeMovie.rating.toFixed(1)} / 5.0 (${activeMovie.totalRatings.toLocaleString('id-ID')} ulasan)`;
+            
+            const badge = document.getElementById('userCurrentRatingBadge');
+            badge.textContent = `Rating Anda: ${stars} Bintang ★`;
+            badge.className = "text-xs font-bold text-brand-gold bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/30";
+
+            showToast(`Terima kasih! Rating ${stars} bintang berhasil dikirim.`);
+        }
+
+        // Submit Comment
+        function submitComment(e) {
+            e.preventDefault();
+            if (!activeMovie) return;
+
+            const nameInput = document.getElementById('commentAuthor');
+            const textInput = document.getElementById('commentText');
+
+            const name = nameInput.value.trim();
+            const text = textInput.value.trim();
+
+            if (!name || !text) return;
+
+            const newComment = {
+                name: name,
+                text: text,
+                date: "Baru saja"
+            };
+
+            if (!activeMovie.comments) activeMovie.comments = [];
+            activeMovie.comments.unshift(newComment);
+
+            saveToStorage();
+            renderComments();
+            updateTotalStats();
+
+            textInput.value = '';
+            showToast("Komentar Anda berhasil ditambahkan!");
+        }
+
+        function renderComments() {
+            const list = document.getElementById('commentsList');
+            if (!activeMovie || !activeMovie.comments || activeMovie.comments.length === 0) {
+                list.innerHTML = `<p class="text-xs text-gray-500 italic py-2">Belum ada komentar. Jadilah yang pertama memberikan ulasan!</p>`;
+                return;
+            }
+
+            list.innerHTML = activeMovie.comments.map(c => `
+                <div class="bg-gray-900/80 p-3.5 rounded-xl border border-gray-800 space-y-1">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-circle text-brand-red"></i> ${escapeHtml(c.name)}
+                        </span>
+                        <span class="text-[10px] text-gray-500">${c.date}</span>
+                    </div>
+                    <p class="text-xs text-gray-300 leading-relaxed">${escapeHtml(c.text)}</p>
+                </div>
+            `).join('');
+        }
+
+        // Trailer Player Mock
+        function playTrailerMock() {
+            document.getElementById('trailerPlaceholder').classList.add('hidden');
+            document.getElementById('trailerPlayer').classList.remove('hidden');
+        }
+
+        function stopTrailerMock() {
+            document.getElementById('trailerPlaceholder').classList.remove('hidden');
+            document.getElementById('trailerPlayer').classList.add('hidden');
+        }
+
+        // Watchlist Management
+        function toggleWatchlist(movieId) {
+            const index = watchlist.indexOf(movieId);
+            if (index > -1) {
+                watchlist.splice(index, 1);
+                showToast("Dihapus dari Daftar Favorit");
+            } else {
+                watchlist.push(movieId);
+                showToast("Ditambahkan ke Daftar Favorit!");
+            }
+            saveToStorage();
+            updateWatchlistBadge();
+            renderAllViews();
+            if (!document.getElementById('watchlistModal').classList.contains('hidden')) {
+                renderWatchlistModalItems();
+            }
+        }
+
+        function updateWatchlistBadge() {
+            const badge = document.getElementById('watchlistBadge');
+            badge.textContent = watchlist.length;
+            if (watchlist.length > 0) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleWatchlistModal() {
+            const modal = document.getElementById('watchlistModal');
+            if (modal.classList.contains('hidden')) {
+                renderWatchlistModalItems();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderWatchlistModalItems() {
+            const container = document.getElementById('watchlistItems');
+            if (watchlist.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Belum ada film di daftar favorit Anda.</p>`;
+                return;
+            }
+
+            const favMovies = moviesData.filter(m => watchlist.includes(m.id));
+            container.innerHTML = favMovies.map(m => `
+                <div class="flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-gray-800">
+                    <div class="flex items-center space-x-3 cursor-pointer" onclick="toggleWatchlistModal(); openMovieDetail(${m.id});">
+                        <img src="${m.poster}" class="w-10 h-12 object-cover rounded-md">
+                        <div>
+                            <h4 class="text-xs font-bold text-white hover:text-brand-red transition">${m.title}</h4>
+                            <span class="text-[10px] text-brand-gold font-bold"><i class="fa-solid fa-star"></i> ${m.rating.toFixed(1)}</span>
+                        </div>
+                    </div>
+                    <button onclick="toggleWatchlist(${m.id})" class="text-xs text-gray-500 hover:text-red-500 p-2">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Live Search Handler
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            executeSearchFilter(query);
+        }
+
+        function handleMobileSearch() {
+            const query = document.getElementById('mobileSearchInput').value.toLowerCase().trim();
+            executeSearchFilter(query);
+        }
+
+        function executeSearchFilter(query) {
+            if (!query) {
+                renderAllViews();
+                return;
+            }
+
+            const filtered = moviesData.filter(m => 
+                m.title.toLowerCase().includes(query) ||
+                m.genre.some(g => g.toLowerCase().includes(query)) ||
+                m.director.toLowerCase().includes(query)
+            );
+
+            // Temporarily replace grid contents
+            document.getElementById('homePopularGrid').innerHTML = filtered.length ? filtered.map(m => createMovieCard(m)).join('') : `<p class="col-span-full text-center text-xs text-gray-400 py-6">Film tidak ditemukan.</p>`;
+            document.getElementById('homeTopRatedGrid').innerHTML = filtered.length ? filtered.map(m => createMovieCard(m)).join('') : '';
+        }
+
+        // Update Total Stats Counter
+        function updateTotalStats() {
+            document.getElementById('statTotalMovies').textContent = moviesData.length;
+            
+            let totalCommentsCount = 0;
+            moviesData.forEach(m => {
+                if (m.comments) totalCommentsCount += m.comments.length;
+            });
+            document.getElementById('statTotalComments').textContent = totalCommentsCount + '+';
+        }
+
+        // Toast Notification Helper
+        function showToast(msg) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = "bg-brand-cardBg text-white border border-brand-red/50 px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-brand-red text-sm"></i> ${msg}`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Helper to prevent HTML injection
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
